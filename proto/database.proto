@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package database;
+
+service Database {
+    rpc GetRecord(GetRecordRequest) returns (GetRecordResponse);
+}
+
+
+message GetRecordRequest {
+    string key = 1;
+}
+
+message GetRecordResponse {
+    string key = 1;
+    bytes value = 2;
+}
