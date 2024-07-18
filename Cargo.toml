@@ -5,6 +5,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+chksum = "0.3.0"
+dotenvy = "0.15.7"
 prost = "0.13.1"
 tokio = { version = "1.38.0", features = ["full"] }
 tonic = "0.12.0"

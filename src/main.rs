@@ -1,100 +1,93 @@
-use proto::{
-    database_server::{Database, DatabaseServer},
-    kektor_server::{Kektor, KektorServer},
-    GetRecordRequest, GetRecordResponse, KektorRequest, KektorResponse,
-};
-use tokio::runtime::Runtime;
-use tonic::{transport::Server, Request, Response, Status};
 
-mod proto {
-    tonic::include_proto!("database");
-}
+// use std::io::Read;
 
-#[derive(Debug, Default)]
-struct DatabaseService {}
+// use models::StorageRecord;
+// use proto::{
+//     storage_server::{Storage, StorageServer},
+//     GetRecordRequest, GetRecordResponse
+// };
 
-#[tonic::async_trait]
-impl Database for DatabaseService {
-    async fn get_record(
-        &self,
-        request: Request<GetRecordRequest>,
-    ) -> Result<Response<GetRecordResponse>, Status> {
-        println!("Get new request: {:#?}", request);
+// use tonic::{transport::Server, Request, Response, Status};
 
-        let req = request.into_inner();
-        println!("Inner object: {:#?}", req);
+// mod proto {
+//     tonic::include_proto!("storage");
+// }
 
-        let reply = GetRecordResponse {
-            key: "kek".to_string(),
-            value: b"lol".to_vec(),
-        };
+// #[derive(Debug, Default)]
+// struct StorageService {}
 
-        Ok(Response::new(reply))
+// #[tonic::async_trait]
+// impl Storage for StorageService {
+//     async fn get_record(
+//         &self,
+//         request: Request<GetRecordRequest>,
+//     ) -> Result<Response<GetRecordResponse>, Status> {
+//         println!("Get new request: {:#?}", request);
+
+//         let req = request.into_inner();
+//         println!("Inner object: {:#?}", req);
+
+//         let reply = GetRecordResponse {
+//             hash: "kek".to_string(),
+//             file: b"lol".to_vec()
+//         };
+
+//         Ok(Response::new(reply))
+//     }
+// }
+
+
+mod storage;
+use storage::generate_hash;
+
+
+use std::{fs::File, io::Read};
+
+fn main() {
+
+
+    let mut file = File::open("foo.txt").unwrap();
+    let mut buf = Vec::with_capacity(100);
+    match file.read_to_end(&mut buf) {
+        Ok(n) => {
+            println!("Successfully read {} bytes", n);
+            println!("Hash: {}", generate_hash(buf).unwrap());
+        },
+        Err(e) => {
+            panic!("{:?}", e);
+        }
     }
 }
 
-#[derive(Debug, Default)]
-struct KektorService {}
+// fn main() {
+//     mod storage;
+//     use storage::*;
 
-#[tonic::async_trait]
-impl Kektor for KektorService {
-    async fn kek(
-        &self,
-        request: Request<KektorRequest>,
-    ) -> Result<Response<KektorResponse>, Status> {
-        let req = request.into_inner();
-        println!("Kektor req: {:#?}", req);
+//     use storage::models::*;
+//     use diesel::prelude::*;
+//     use storage::schema::storage::dsl::*;
 
-        Ok(Response::new(KektorResponse {
-            val: "Hello, from kektor!".to_string(),
-        }))
-    }
-}
+//     let connection = establish_connection();
+//     let results = storage
+//         .select(StorageRecord::as_select())
+//         .load(connection)
+//         .expect("Error loading storage records");
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr1 = "[::1]:50051".parse()?;
-    let addr2 = "[::1]:50052".parse()?;
-    let db_service = DatabaseService::default();
-    let kek_service = KektorService::default();
+//     println!("Storage:\n{:#?}", results);
+// }
 
-    let th1 = std::thread::spawn(move || {
-        let rt1 = Runtime::new().unwrap();
-        rt1.block_on(async move {
-            Server::builder()
-                .add_service(DatabaseServer::new(db_service))
-                .serve(addr1)
-                .await
-                .unwrap()
-        });
-    });
 
-    let th2 = std::thread::spawn(move || {
-        let rt2 = Runtime::new().unwrap();
-        rt2.block_on(async move {
-            Server::builder()
-                .add_service(KektorServer::new(kek_service))
-                .serve(addr2)
-                .await
-                .unwrap()
-        });
-    });
-
-    th1.join().unwrap();
-    th2.join().unwrap();
-
-    Ok(())
-}
 
 // #[tokio::main]
 // async fn main() -> Result<(), Box<dyn std::error::Error>> {
 //     let addr = "[::1]:50051".parse()?;
-//     let service = DatabaseService::default();
+//     let db_service = StorageService::default();
 
 //     Server::builder()
-//         .add_service(DatabaseServer::new(service))
+//         .add_service(StorageServer::new(db_service))
 //         .serve(addr)
 //         .await?;
 
 //     Ok(())
 // }
+

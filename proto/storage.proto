@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package storage;
+
+service Storage {
+    rpc GetRecord(GetRecordRequest) returns (GetRecordResponse);
+}
+
+
+message GetRecordRequest {
+    string hash = 1;
+}
+
+message GetRecordResponse {
+    string hash = 1;
+    bytes file = 2;
+}
